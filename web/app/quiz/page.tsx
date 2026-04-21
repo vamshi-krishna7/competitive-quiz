@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Socket } from "socket.io-client";
-import { getSocket } from "@/lib/socket";
+import { getSocket, resetSocket } from "@/lib/socket";
 
 type Question = { id: string; prompt: string; createdAt: number };
 type Winner = { userId: string; username: string; solveMs: number };
@@ -13,6 +14,7 @@ type SubmitResult =
   | { status: "stale" | "rate_limited" | "wrong" | "late" };
 
 export default function QuizPage() {
+  const router = useRouter();
   const [connected, setConnected] = useState(false);
   const [question, setQuestion] = useState<Question | null>(null);
   const [winner, setWinner] = useState<Winner | null>(null);
@@ -50,12 +52,19 @@ export default function QuizPage() {
     const onWinner = (w: Winner) => setWinner(w);
     const onLeaderboard = (lb: Entry[]) => setLeaderboard(lb);
 
+    const onUsernameTaken = () => {
+      localStorage.removeItem("username");
+      resetSocket();
+      router.replace("/?error=username_taken");
+    };
+
     s.on("connect", onConnect);
     s.on("disconnect", onDisconnect);
     s.on("sync", onSync);
     s.on("new_question", onNewQuestion);
     s.on("winner_announced", onWinner);
     s.on("leaderboard_update", onLeaderboard);
+    s.on("username_taken", onUsernameTaken);
 
     const pingTimer = setInterval(() => {
       const start = performance.now();
@@ -72,8 +81,9 @@ export default function QuizPage() {
       s.off("new_question", onNewQuestion);
       s.off("winner_announced", onWinner);
       s.off("leaderboard_update", onLeaderboard);
+      s.off("username_taken", onUsernameTaken);
     };
-  }, []);
+  }, [router]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,9 +120,9 @@ export default function QuizPage() {
   return (
     <main className="space-y-6">
       <div className="flex items-center justify-between text-sm">
-        <Link href="/" className="text-accent-secondary hover:underline">← Home</Link>
+        <Link href="/" className="text-accent-link hover:underline">← Home</Link>
         <div className="flex items-center gap-3 text-text-secondary">
-          <span className={connected ? "text-accent-secondary" : "text-accent-primary"}>
+          <span className={connected ? "text-accent-secondary" : "text-warning"}>
             ● {connected ? "Connected" : "Reconnecting…"}
           </span>
           {ping !== null && <span>{ping}ms</span>}

@@ -17,7 +17,9 @@ const config: Config = {
         accent: {
           primary: "var(--accent-primary)",
           secondary: "var(--accent-secondary)",
+          link: "var(--accent-link)",
         },
+        warning: "var(--warning)",
         border: {
           DEFAULT: "var(--border)",
         },

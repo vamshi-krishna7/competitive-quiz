@@ -27,7 +27,7 @@ export default async function LeaderboardPage() {
     <main className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-text-primary">Leaderboard</h1>
-        <Link href="/" className="text-accent-secondary hover:underline">← Home</Link>
+        <Link href="/" className="text-accent-link hover:underline">← Home</Link>
       </div>
 
       {entries.length === 0 ? (
