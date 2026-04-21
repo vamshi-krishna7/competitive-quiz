@@ -69,7 +69,7 @@ export default function Home() {
             setUsername(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="e.g. mathwiz"
+          placeholder="e.g. caimera"
           className="w-full bg-bg-surface border border-border rounded-lg px-4 py-2 text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-accent-primary"
         />
         {error && <p className="text-sm text-warning">{error}</p>}

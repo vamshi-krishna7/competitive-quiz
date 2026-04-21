@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDuration } from "@/lib/format";
 
 type Entry = {
   userId: string;
@@ -39,7 +40,7 @@ export default async function LeaderboardPage() {
               <th className="py-2">#</th>
               <th>Player</th>
               <th className="text-right">Wins</th>
-              <th className="text-right">Best (ms)</th>
+              <th className="text-right">Best time</th>
             </tr>
           </thead>
           <tbody>
@@ -48,7 +49,7 @@ export default async function LeaderboardPage() {
                 <td className="py-2">{i + 1}</td>
                 <td>{e.username}</td>
                 <td className="text-right">{e.wins}</td>
-                <td className="text-right">{e.bestSolveMs}</td>
+                <td className="text-right tabular-nums">{formatDuration(e.bestSolveMs)}</td>
               </tr>
             ))}
           </tbody>

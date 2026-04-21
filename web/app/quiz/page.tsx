@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Socket } from "socket.io-client";
 import { getSocket, resetSocket } from "@/lib/socket";
+import { formatDuration } from "@/lib/format";
 
 type Question = { id: string; prompt: string; createdAt: number };
 type Winner = { userId: string; username: string; solveMs: number };
@@ -170,7 +171,7 @@ export default function QuizPage() {
           >
             <div className="text-sm text-text-secondary">Winner</div>
             <div className="text-xl font-semibold mt-1 text-text-primary">
-              {winnerIsMe ? "You!" : winner.username} — {winner.solveMs}ms
+              {winnerIsMe ? "You!" : winner.username} — {formatDuration(winner.solveMs)}
             </div>
             <div className="text-xs text-text-secondary mt-2">Next problem in a moment…</div>
           </div>
@@ -190,7 +191,7 @@ export default function QuizPage() {
                   {e.username}
                 </span>
                 <span className="text-text-secondary">
-                  {e.wins} win{e.wins === 1 ? "" : "s"} · best {e.bestSolveMs}ms
+                  {e.wins} win{e.wins === 1 ? "" : "s"} · best {formatDuration(e.bestSolveMs)}
                 </span>
               </li>
             ))}
