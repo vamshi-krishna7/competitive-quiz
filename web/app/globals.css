@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-surface: #FBF4F4;
+  --text-primary: #2B2828;
+  --text-secondary: #6B6B6B;
+  --text-on-accent: #FFFFFF;
+  --accent-primary: #2B2828;
+  --accent-secondary: #4DA3FF;
+  --border: #E8E0E0;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
