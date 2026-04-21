@@ -13,8 +13,25 @@ app.use(cors({ origin: CORS_ORIGIN }));
 
 const leaderboard = new Leaderboard();
 
+const activeUsernames = new Map<string, string>();
+
+function normalize(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function isTaken(name: string, userId: string): boolean {
+  const owner = activeUsernames.get(normalize(name));
+  return owner !== undefined && owner !== userId;
+}
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.get("/leaderboard", (_req, res) => res.json(leaderboard.top(10)));
+app.get("/username-available", (req, res) => {
+  const name = String(req.query.name ?? "").trim();
+  if (!name) return res.json({ available: false, reason: "empty" });
+  const taken = activeUsernames.has(normalize(name));
+  res.json({ available: !taken });
+});
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -36,8 +53,16 @@ game.on("question", (question) => {
 
 io.on("connection", (socket) => {
   const userId = (socket.handshake.auth?.userId as string) || socket.id;
-  let username = (socket.handshake.auth?.username as string) || "Anonymous";
+  const rawUsername = (socket.handshake.auth?.username as string) || "Anonymous";
+  let username = rawUsername.trim().slice(0, 24) || "Anonymous";
 
+  if (isTaken(username, userId)) {
+    socket.emit("username_taken", { username });
+    socket.disconnect(true);
+    return;
+  }
+
+  activeUsernames.set(normalize(username), userId);
   socket.join(ROOM);
 
   socket.emit("sync", {
@@ -51,11 +76,36 @@ io.on("connection", (socket) => {
     ack?.(result);
   });
 
-  socket.on("set_username", (name: string) => {
-    if (typeof name === "string" && name.trim()) username = name.trim().slice(0, 24);
-  });
+  socket.on(
+    "set_username",
+    (name: string, ack?: (r: { ok: boolean; reason?: string }) => void) => {
+      if (typeof name !== "string" || !name.trim()) {
+        ack?.({ ok: false, reason: "empty" });
+        return;
+      }
+      const next = name.trim().slice(0, 24);
+      if (normalize(next) === normalize(username)) {
+        ack?.({ ok: true });
+        return;
+      }
+      if (isTaken(next, userId)) {
+        ack?.({ ok: false, reason: "taken" });
+        return;
+      }
+      activeUsernames.delete(normalize(username));
+      username = next;
+      activeUsernames.set(normalize(username), userId);
+      ack?.({ ok: true });
+    }
+  );
 
   socket.on("ping_check", (_, ack) => ack?.({ serverTime: Date.now() }));
+
+  socket.on("disconnect", () => {
+    if (activeUsernames.get(normalize(username)) === userId) {
+      activeUsernames.delete(normalize(username));
+    }
+  });
 });
 
 server.listen(PORT, () => {
