@@ -1,0 +1,9 @@
+# Local-only reference notes (not for GitHub)
+NOTES.md
+V1_NOTES.md
+
+# OS / editor junk
+.DS_Store
+.idea
+.vscode
+*.swp
